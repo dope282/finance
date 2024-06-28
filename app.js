@@ -10,7 +10,7 @@ var DOMstrings = {
     return {
         getInput: function(){
             return {
-                type: document.querySelector(DOMstrings.inputType).value,
+                type: document.querySelector(DOMstrings.inputType).value, //inc, exp
                 description: document.querySelector(DOMstrings.inputDescription).value,
                 value: document.querySelector(DOMstrings.inputValue).value
             }
@@ -24,6 +24,7 @@ var DOMstrings = {
 
 //sanhuute ajillah Controller
 var financeController = (function(){
+    //private datas
     var Income = function(id, description, value) {
         this.id = id;
         this.description = description;
@@ -35,13 +36,31 @@ var financeController = (function(){
         this.value = value;
     }
     var data = {
-        allItems: {
+        items: {
             inc: [],
             exp: []
         },
         totals: {
             inc: 0,
             exp: 0
+        }
+    };
+    return {
+        addItem: function(type, desc, val) {
+
+            var item, id = 1;
+            if(data.items[type].length === 0) id = 1;
+            else {
+                id = data.items[type][data.items[type].length - 1].id + 1;
+            }
+            if(type==='inc'){
+                item = new Income(id, desc, val)
+            }
+            else {
+                item = new Expense(id, desc, val)
+            }
+
+            data.items[type].push(item);
         }
     }
 })();
@@ -50,8 +69,9 @@ var financeController = (function(){
 var appController = (function(uiController, financeController){
     var ctrlAddItem = function(){
         //1.oruulah ogogdliig delgetsees olj avna
-        console.log(uiController.getInput());
+        var input = uiController.getInput();
         //2.olj avsan ogogdloo sanhuugin controller luu damjuulj tend hadgalna
+        financeController.addItem(input.type, input.description, input.type);
         //3.olj avsan ogogdloo web deeree tohiroh hesegt gargana
         //4.tosviig tootsoolno
         //5.etssiin uldegdel, tootsoog delgetsend hadgalna
