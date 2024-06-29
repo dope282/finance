@@ -4,7 +4,9 @@ var DOMstrings = {
     inputType: ".add__type",
     inputDescription: ".add__description",
     inputValue: ".add__value",
-    addBtn: ".add__btn"
+    addBtn: ".add__btn",
+    incomeList: ".income__list",
+    expenseList: ".expenses__list"
 };
 
     return {
@@ -12,22 +14,35 @@ var DOMstrings = {
             return {
                 type: document.querySelector(DOMstrings.inputType).value, //inc, exp
                 description: document.querySelector(DOMstrings.inputDescription).value,
-                value: document.querySelector(DOMstrings.inputValue).value
+                value: parseInt(document.querySelector(DOMstrings.inputValue).value)
             };
         },
 
         getDOMstrings: function(){
             return DOMstrings;
         },
+        clearFields: function() {
+            var fields = document.querySelectorAll(DOMstrings.inputDescription + ", " + DOMstrings.inputValue );
+        //convert list to array
+        var fieldsArr = Array.prototype.slice.call(fields);
+        // for(var i = 0; i < fieldsArr.length; i++){
+        //     fieldsArr[i].value = "";
+        // }
+        fieldsArr.forEach(function(el, index, array){
+            el.value = "";
+        });
+
+        fieldsArr[0].focus();
+        },
         addListItem: function(item, type) {
             //orlogo zarlagiin elementiig aguulsan HTML-iig beltgene
             var html, list;
             if(type === 'inc') {
-                list = ".income__list";
-                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%DESCRIPTION%</div><div class="right clearfix"><div class="item__value">%VALUE%%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                list = DOMstrings.incomeList;
+                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%DESCRIPTION%</div><div class="right clearfix"><div class="item__value">+ %VALUE%%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             } else {
-                list = ".expenses__list";
-                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%DESCRIPTION%</div><div class="right clearfix"><div class="item__value">%VALUE%%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                list = DOMstrings.expenseList;
+                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%DESCRIPTION%</div><div class="right clearfix"><div class="item__value">- %VALUE%%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
             //ter html dotrooo orlogo zarlagiin utguudiin REPLACE ashiglaj oorchilno
             html = html.replace("%id%", item.id);
@@ -51,6 +66,13 @@ var financeController = (function(){
         this.id = id;
         this.description = description;
         this.value = value;
+    };
+    var calculateTotal = function(type){
+        var sum = 0;
+        data.items[type].forEach(function(el){
+            sum = sum + el.value;
+        });
+        data.totals[type] = sum;
     }
     var data = {
         items: {
@@ -60,9 +82,28 @@ var financeController = (function(){
         totals: {
             inc: 0,
             exp: 0
-        }
+        },
+        tusuv: 0,
+        huvi: 0
     };
     return {
+        tusuvTootsooloh: function(){
+            //niit orlogo zarlagiig tootsoolno
+            calculateTotal('inc');
+            calculateTotal('exp');
+            //tusviig shineer toootsooolno
+            data.tusuv = data.totals.inc-data.totals.exp;
+            //orlogo zarlagiin huviig tootsoolno
+            data.huvi = Math.round((data.totals.exp / data.totals.inc) * 100)
+        },
+        tusviigAvah: function(){
+            return {
+                tusuv: data.tusuv,
+                huvi: data.huvi,
+                totalInc: data.totals.inc,
+                totalExp: data.totals.exp
+            }
+        },
         addItem: function(type, desc, val) {
 
             var item, id;
@@ -89,13 +130,19 @@ var appController = (function(uiController, financeController){
         //1.oruulah ogogdliig delgetsees olj avna
         var input = uiController.getInput();
         console.log(input)
-        //2.olj avsan ogogdloo sanhuugin controller luu damjuulj tend hadgalna
-         var item = financeController.addItem(input.type, input.description, input.value);
-        //3.olj avsan ogogdloo web deeree tohiroh hesegt gargana
-        uiController.addListItem(item, input.type);
-        //4.tosviig tootsoolno
-        //5.etssiin uldegdel, tootsoog delgetsend hadgalna
-    }
+        if(input.description !== "" && input.value !== ""){
+            //2.olj avsan ogogdloo sanhuugin controller luu damjuulj tend hadgalna
+            var item = financeController.addItem(input.type, input.description, input.value);
+            //3.olj avsan ogogdloo web deeree tohiroh hesegt gargana
+            uiController.addListItem(item, input.type);
+            uiController.clearFields();
+            //4.tosviig tootsoolno
+            financeController.tusuvTootsooloh();
+            //5.etssiin uldegdel, tootsoog delgetsend hadgalna
+            var tusuv = financeController.tusviigAvah();
+            console.log(tusuv)
+        }
+        }
     var setUpEventListeners = function(){
         var DOM = uiController.getDOMstrings();
         document.querySelector(DOM.addBtn).addEventListener("click", function(){
