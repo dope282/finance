@@ -10,7 +10,8 @@ var DOMstrings = {
     tusuvLabel: ".budget__value",
     incomeLabel: ".budget__income--value",
     expense: ".budget__expenses--value",
-    percentegeLabel: ".budget__expenses--percentage"
+    percentegeLabel: ".budget__expenses--percentage",
+    containerDiv: ".container"
 };
 
     return {
@@ -46,15 +47,19 @@ var DOMstrings = {
             document.querySelector(DOMstrings.percentegeLabel).textContent = tusuv.huvi + "%";
         } else document.querySelector(DOMstrings.percentegeLabel).textContent = tusuv.huvi;
         },
+        deleteListItem: function(id){
+            var el = document.getElementById(id);
+            el.parentNode.removeChild(el);
+        },
         addListItem: function(item, type) {
             //orlogo zarlagiin elementiig aguulsan HTML-iig beltgene
             var html, list;
             if(type === 'inc') {
                 list = DOMstrings.incomeList;
-                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%DESCRIPTION%</div><div class="right clearfix"><div class="item__value">+ %VALUE%%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%DESCRIPTION%</div><div class="right clearfix"><div class="item__value">+ %VALUE%%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             } else {
                 list = DOMstrings.expenseList;
-                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%DESCRIPTION%</div><div class="right clearfix"><div class="item__value">- %VALUE%%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%DESCRIPTION%</div><div class="right clearfix"><div class="item__value">- %VALUE%%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
             //ter html dotrooo orlogo zarlagiin utguudiin REPLACE ashiglaj oorchilno
             html = html.replace("%id%", item.id);
@@ -116,6 +121,17 @@ var financeController = (function(){
                 totalExp: data.totals.exp
             }
         },
+        deleteItem: function(type, id){
+            var ids = data.items[type].map(function(el){
+                return el.id;
+            });
+
+            var index = ids.indexOf(id);
+
+            if(index !== -1){
+                data.items[type].splice(index, 1);
+            }
+        },
         addItem: function(type, desc, val) {
 
             var item, id;
@@ -141,7 +157,6 @@ var appController = (function(uiController, financeController){
     var ctrlAddItem = function(){
         //1.oruulah ogogdliig delgetsees olj avna
         var input = uiController.getInput();
-        console.log(input)
         if(input.description !== "" && input.value !== ""){
             //2.olj avsan ogogdloo sanhuugin controller luu damjuulj tend hadgalna
             var item = financeController.addItem(input.type, input.description, input.value);
@@ -165,6 +180,19 @@ var appController = (function(uiController, financeController){
                 ctrlAddItem();
             }
         });
+        document.querySelector(DOM.containerDiv).addEventListener("click", function(event){
+            var id = event.target.parentNode.parentNode.parentNode.parentNode.id;
+            if(id){
+                var arr = id.split("-");
+                var type = arr[0];
+                var itemId = parseInt(arr [1]);
+                //1. sanhuugiin modulias type, id ashiglaad ustgana.
+                financeController.deleteItem(type, itemId);
+                //2. delgets deereees ene elementiig ustgana.
+                uiController.deleteListItem(id);
+                //3. uldegdel tootsoog shinechilj haruulna.
+            }
+        })
     }
 
     return {
