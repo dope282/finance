@@ -37,11 +37,17 @@ var formatMoney = function(too) {
 };
 
     return {
-
+        changeType: function(){
+            var fields = document.querySelectorAll(DOMstrings.inputType + ", " + DOMstrings.inputDescription + ", " + DOMstrings.inputValue);
+            nodeListForEach(fields, function(el){
+                el.classList.toggle("red-focus");
+            });
+            window.document.querySelector(DOMstrings.addBtn).classList.toggle("red");
+        },
         displayDate: function() {
             var unuudur = new Date();
             document.querySelector(DOMstrings.dateLabel).textContent = unuudur.getFullYear() + " оны " + 
-            unuudur.getMonth() + " сарын санхүү";
+            unuudur.getMonth() + " сарын санхүү ";
         },
         getInput: function(){
             return {
@@ -51,7 +57,7 @@ var formatMoney = function(too) {
             };
         },
         displayPercentages: function(allPercentages){
-            //zarlagiin nodeList-iig oloh 
+            //zarlagiin nodeList-iig oloh
             var elements = document.querySelectorAll(DOMstrings.expensePercentageLabel);
             //element bolgonii huvid zarlagiin massive aas avch shivj oruulah
             nodeListForEach(elements, function(el, index){
@@ -78,7 +84,8 @@ var formatMoney = function(too) {
         tusviigUzuuleh(tusuv) {
             var type;
             if(tusuv.tusuv > 0) type = "inc";
-            else type = "exp"
+            else type = "exp";
+            
             document.querySelector(DOMstrings.tusuvLabel).textContent = formatMoney(tusuv.tusuv, type);
             document.querySelector(DOMstrings.incomeLabel).textContent = formatMoney(tusuv.totalInc, "inc");
             document.querySelector(DOMstrings.expense).textContent = formatMoney(tusuv.totalExp, "exp");
@@ -251,6 +258,8 @@ var appController = (function(uiController, financeController){
                 ctrlAddItem();
             }
         });
+
+        document.querySelector(DOM.inputType).addEventListener("change", uiController.changeType);
         document.querySelector(DOM.containerDiv).addEventListener("click", function(event){
             var id = event.target.parentNode.parentNode.parentNode.parentNode.id;
             if(id){
